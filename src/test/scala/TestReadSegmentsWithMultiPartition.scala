@@ -7,7 +7,9 @@ import org.scalatest.FunSuite
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.{Document, Field, TextField}
 import org.apache.lucene.index._
+import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
 import org.apache.lucene.store.{Directory, FSDirectory}
+import scala.collection.JavaConverters._
 
 class TestReadSegmentsWithMultiPartition extends FunSuite {
 
@@ -43,32 +45,52 @@ class TestReadSegmentsWithMultiPartition extends FunSuite {
     indexWriter.close()
   }
 
+  def fields(indexSearcher: IndexSearcher): Set[String] = {
+    val MatchAllDocs = new MatchAllDocsQuery()
+    indexSearcher.search(MatchAllDocs, 10).scoreDocs.flatMap(x =>
+      indexSearcher.getIndexReader.document(x.doc)
+        .iterator().asScala
+    ).map(doc =>
+      doc.name()
+    ).toSet[String]
+  }
+
+
   test("test read lucene segments with muti-partitions") {
-    Logger.getLogger("org").setLevel(Level.OFF)
-    Logger.getLogger("akka").setLevel(Level.OFF)
+    //    Logger.getLogger("org").setLevel(Level.OFF)
+    //    Logger.getLogger("akka").setLevel(Level.OFF)
+    //
+    //    val sparkConf = new SparkConf().setMaster("local[*]").setAppName("read lucene segments")
+    //    val sparkContext = new SparkContext(sparkConf)
+    //    val testResourcePaths = getClass.getResource("segments").getPath
+    //
+    //    // gen lucene segments.
+    //    mockLucene(testResourcePaths)
+    //
+    //    // TODO : default could not read file start with _ ?, let me check it later...
+    //    val dirs = FSDirectory.open(Paths.get(testResourcePaths))
+    //    for (file <- dirs.listAll()) {
+    //      dirs.rename(file, "s" + file)
+    //    }
+    //
+    //    val result = sparkContext.wholeTextFiles(testResourcePaths + "/*.si", 10)
+    //      .mapPartitions({ iter =>
+    //        println("partition id : " + TaskContext.getPartitionId())
+    //        println("thread id : " + Thread.currentThread().getId)
+    //        iter
+    //      })
+    //      .collect()
+    //
+    //    assert(result.length == 10)
 
-    val sparkConf = new SparkConf().setMaster("local[*]").setAppName("read lucene segments")
-    val sparkContext = new SparkContext(sparkConf)
     val testResourcePaths = getClass.getResource("segments").getPath
-
-    // gen lucene segments.
     mockLucene(testResourcePaths)
-
-    // TODO : default could not read file start with _ ?, let me check it later...
-    val dirs = FSDirectory.open(Paths.get(testResourcePaths))
-    for (file <- dirs.listAll()) {
-      dirs.rename(file, "s" + file)
+    val indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(testResourcePaths)))
+    for (context: LeafReaderContext <- indexReader.leaves().asScala) {
+      val air = context.reader().asInstanceOf[SegmentReader]
+      val indexSearcher = new IndexSearcher(air)
+      println(indexSearcher.getIndexReader.numDocs().toLong)
+      println(fields(indexSearcher))
     }
-
-
-    val result = sparkContext.wholeTextFiles(testResourcePaths + "/*.si", 10)
-      .mapPartitions({ iter =>
-        println("partition id : " + TaskContext.getPartitionId())
-        println("thread id : " + Thread.currentThread().getId)
-        iter
-      })
-      .collect()
-
-    assert(result.length == 10)
   }
 }
