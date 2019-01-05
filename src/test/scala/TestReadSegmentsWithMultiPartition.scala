@@ -55,7 +55,6 @@ class TestReadSegmentsWithMultiPartition extends FunSuite {
     ).toSet[String]
   }
 
-
   test("test read lucene segments with muti-partitions") {
     //    Logger.getLogger("org").setLevel(Level.OFF)
     //    Logger.getLogger("akka").setLevel(Level.OFF)
