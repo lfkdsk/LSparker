@@ -1,4 +1,8 @@
-package com.lfkdsk.partitions
+package com.lfkdsk.lspark
+
+import com.lfkdsk.lspark.partitions.AbstractLucenePartition
+import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
+import org.apache.spark.rdd.RDD
 
 import scala.reflect.ClassTag
 
@@ -18,13 +22,10 @@ import scala.reflect.ClassTag
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-abstract class AbstractLucenePartition[T] extends Serializable with AutoCloseable {
-  protected implicit def kTag: ClassTag[T]
+class LuceneRDD[T: ClassTag](partitions: RDD[AbstractLucenePartition[T]])
+  extends RDD[T](partitions.context, List(new OneToOneDependency(partitions))) {
 
-  def size: Long
+  override def compute(split: Partition, context: TaskContext): Iterator[T] = ???
 
-  def iterator: Iterator[T]
-
-  def fields(): Set[String]
-
+  override protected def getPartitions: Array[Partition] = ???
 }

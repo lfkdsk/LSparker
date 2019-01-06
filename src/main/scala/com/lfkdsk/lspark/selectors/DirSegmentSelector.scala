@@ -1,8 +1,7 @@
-package com.lfkdsk.selectors
+package com.lfkdsk.lspark.selectors
 
 import java.nio.file.Paths
 
-import com.lfkdsk.selector.{AbstractSegmentSelector, TimeRange}
 import org.apache.lucene.index.{DirectoryReader, SegmentInfo, SegmentReader}
 import org.apache.lucene.search.{IndexSearcher, Query}
 import org.apache.lucene.store.FSDirectory
@@ -27,7 +26,7 @@ import scala.collection.JavaConverters._
  * limitations under the License.
  */
 class DirSegmentSelector(path: String) extends AbstractSegmentSelector[SegmentReader] {
-  override implicit protected def kTag: ClassTag[SegmentReader] = ???
+  override implicit protected def kTag: ClassTag[SegmentReader] = ClassTag(classOf[SegmentReader])
 
   override def size: Long = ???
 

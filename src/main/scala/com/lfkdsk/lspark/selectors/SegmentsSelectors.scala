@@ -1,10 +1,6 @@
-package com.lfkdsk
+package com.lfkdsk.lspark.selectors
 
-import com.lfkdsk.partitions.AbstractLucenePartition
-import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
-import org.apache.spark.rdd.RDD
-
-import scala.reflect.ClassTag
+import org.apache.lucene.index.SegmentReader
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,10 +18,11 @@ import scala.reflect.ClassTag
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class LuceneRDD[T: ClassTag](partitions: RDD[AbstractLucenePartition[T]])
-  extends RDD[T](partitions.context, List(new OneToOneDependency(partitions))) {
+object SegmentsSelectors {
 
-  override def compute(split: Partition, context: TaskContext): Iterator[T] = ???
+  // get dir's segments.
+  def dir(path: String): DirSegmentSelector = new DirSegmentSelector(path)
 
-  override protected def getPartitions: Array[Partition] = ???
+  // get segment's info from apis.
+
 }

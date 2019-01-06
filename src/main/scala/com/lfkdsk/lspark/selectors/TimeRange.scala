@@ -1,6 +1,4 @@
-package com.lfkdsk.selectors
-
-import org.apache.lucene.index.SegmentReader
+package com.lfkdsk.lspark.selectors
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,11 +16,6 @@ import org.apache.lucene.index.SegmentReader
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-object SegmentsSelectors {
-
-  // get dir's segments.
-  def dir(path: String): DirSegmentSelector = new DirSegmentSelector(path)
-
-  // get segment's info from apis.
-
+case class TimeRange(startTime: Long, endTime: Long) {
+  // TODO
 }

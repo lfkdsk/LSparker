@@ -1,4 +1,8 @@
-package com.lfkdsk.selector
+package com.lfkdsk.lspark.selectors
+
+import org.apache.lucene.search.Query
+
+import scala.reflect.ClassTag
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,6 +20,12 @@ package com.lfkdsk.selector
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-case class TimeRange(startTime: Long, endTime: Long) {
-  // TODO
+abstract class AbstractSegmentSelector[T] extends Serializable with AutoCloseable {
+  protected implicit def kTag: ClassTag[T]
+
+  def size: Long
+
+  def iterator: Iterator[T]
+
+  def select(timeRange: TimeRange, query: Query): List[T]
 }

@@ -1,6 +1,4 @@
-package com.lfkdsk.selector
-
-import org.apache.lucene.search.Query
+package com.lfkdsk.lspark.partitions
 
 import scala.reflect.ClassTag
 
@@ -20,12 +18,13 @@ import scala.reflect.ClassTag
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-abstract class AbstractSegmentSelector[T] extends Serializable with AutoCloseable {
+abstract class AbstractLucenePartition[T] extends Serializable with AutoCloseable {
   protected implicit def kTag: ClassTag[T]
 
   def size: Long
 
   def iterator: Iterator[T]
 
-  def select(timeRange: TimeRange, query: Query): List[T]
+  def fields(): Set[String]
+
 }
