@@ -1,7 +1,10 @@
 package com.lfkdsk.lspark
 
-import com.lfkdsk.lspark.partitions.AbstractLucenePartition
-import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
+import com.lfkdsk.lspark.partitions.{AbstractLucenePartition, LocalLucenePartition}
+import com.lfkdsk.lspark.response.{LucenePartitionResponse, LuceneResponse}
+import com.lfkdsk.lspark.selectors.DirSegmentSelector
+import org.apache.lucene.index.{IndexReader, SegmentReader}
+import org.apache.spark.{OneToOneDependency, Partition, SparkContext, TaskContext}
 import org.apache.spark.rdd.RDD
 
 import scala.reflect.ClassTag
@@ -25,7 +28,31 @@ import scala.reflect.ClassTag
 class LuceneRDD[T: ClassTag](partitions: RDD[AbstractLucenePartition[T]])
   extends RDD[T](partitions.context, List(new OneToOneDependency(partitions))) {
 
-  override def compute(split: Partition, context: TaskContext): Iterator[T] = ???
+  override def compute(split: Partition, context: TaskContext): Iterator[T] = {
+    firstParent[AbstractLucenePartition[T]].iterator(split, context).next.iterator
+  }
 
-  override protected def getPartitions: Array[Partition] = ???
+  override protected def getPartitions: Array[Partition] = partitions.partitions
+
+  protected def partitionMap(factor: AbstractLucenePartition[T] => LucenePartitionResponse)
+  : LuceneResponse = {
+    new LuceneResponse(partitions.map(factor))
+  }
+
+  def query(searchString: String,
+            topK: Int = 10): LuceneResponse = {
+    partitionMap(_.query(searchString, topK))
+  }
+}
+
+object LuceneRDD extends Serializable {
+  def apply[T: ClassTag](elems: Iterable[T])(implicit sc: SparkContext): LuceneRDD[T] = {
+    val partitions = sc.parallelize[T](elems.toSeq).map[AbstractLucenePartition[T]] {
+      case segmentReader: SegmentReader => new LocalLucenePartition(segmentReader)
+        .asInstanceOf[AbstractLucenePartition[T]]
+      case _ => null
+    }
+
+    new LuceneRDD[T](partitions)
+  }
 }

@@ -1,8 +1,7 @@
-package com.lfkdsk.lspark.partitions
+package com.lfkdsk.lspark.response
 
-import com.lfkdsk.lspark.response.LucenePartitionResponse
-
-import scala.reflect.ClassTag
+import org.apache.lucene.search.ScoreDoc
+import org.apache.spark.rdd.RDD
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,14 +19,6 @@ import scala.reflect.ClassTag
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-abstract class AbstractLucenePartition[T] extends Serializable with AutoCloseable {
-  protected implicit def kTag: ClassTag[T]
-
-  def size: Long
-
-  def iterator: Iterator[T]
-
-  def fields(): Set[String]
-
-  def query(searchString: String, topK: Int): LucenePartitionResponse
+case class LucenePartitionResponse(results: Iterator[ScoreDoc]) extends Iterable[ScoreDoc] {
+  override def iterator: Iterator[ScoreDoc] = results
 }

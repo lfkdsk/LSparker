@@ -44,6 +44,7 @@ javacOptions ++= Seq("-Xlint",
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "2.4.0",
   "org.apache.lucene" % "lucene-core" % "7.6.0",
+  "org.apache.lucene" % "lucene-queryparser" % "7.6.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "com.holdenkarau" %% "spark-testing-base" % s"2.3.1_0.10.0" % "test" intransitive()
 )
