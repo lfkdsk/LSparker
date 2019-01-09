@@ -81,10 +81,5 @@ class LuceneRDDTest extends FlatSpec
   "LuceneRDDs.query(String)" should "search elements in each segments" in {
     val selector = new DirSegmentSelector(testPath)
     val segments = selector.select(null, null) // default select all segments.
-
-    val partitions = sc.parallelize(segments).map {
-      case segmentReader: SegmentReader => new LocalLucenePartition(segmentReader).asInstanceOf[AbstractLucenePartition[SegmentReader]]
-      case _ => null
-    }
   }
 }

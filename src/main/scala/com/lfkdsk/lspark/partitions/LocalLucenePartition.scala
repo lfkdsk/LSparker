@@ -30,7 +30,7 @@ class LocalLucenePartition(reader: SegmentReader) extends AbstractLucenePartitio
 
   override def size: Long = ???
 
-  override def iterator: Iterator[Nothing] = ???
+  override def iterator: Iterator[SegmentReader] = ???
 
   override def fields(): Set[String] = ???
 
