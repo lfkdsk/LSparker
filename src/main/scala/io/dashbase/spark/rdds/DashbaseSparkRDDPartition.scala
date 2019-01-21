@@ -1,4 +1,7 @@
-package com.lfkdsk.lspark.selectors
+package io.dashbase.spark.rdds
+
+import org.apache.spark.Partition
+import org.apache.spark.internal.Logging
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,6 +19,11 @@ package com.lfkdsk.lspark.selectors
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-case class TimeRange(startTime: Long, endTime: Long) {
-  // TODO
+case class DashbaseSparkRDDPartition(rddId: Int, id: Int, segments: Set[String])
+  extends Partition with Logging with Serializable {
+  override def index: Int = id
+
+  logInfo(s"[partId=$id] Partition is created...")
+
+  def query[Response](f: Set[String] => Response, segments: Set[String]): Response = f.apply(segments)
 }

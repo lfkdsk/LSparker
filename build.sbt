@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-name := "LSparker"
+name := "dashbase-spark"
 scalaVersion := "2.11.12"
 version := "0.1"
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
@@ -32,14 +32,6 @@ scalacOptions ++= Seq(
   "-Ywarn-value-discard",
   "-language:implicitConversions"
 )
-
-javacOptions ++= Seq("-Xlint",
-  "-Xms512M",
-  "-Xmx2048M",
-  "-XX:MaxPermSize=2048M",
-  "-XX:+CMSClassUnloadingEnabled"
-)
-
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "2.4.0",

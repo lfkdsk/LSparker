@@ -1,8 +1,4 @@
-package com.lfkdsk.lspark.partitions
-
-import com.lfkdsk.lspark.response.LucenePartitionResponse
-
-import scala.reflect.ClassTag
+package io.dashbase.spark.examples
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,14 +16,6 @@ import scala.reflect.ClassTag
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-abstract class AbstractLucenePartition[T] extends Serializable with AutoCloseable {
-  protected implicit def kTag: ClassTag[T]
+class Examples {
 
-  def size: Long
-
-  def iterator: Iterator[T]
-
-  def fields(): Set[String]
-
-  def query(searchString: String, topK: Int): LucenePartitionResponse
 }

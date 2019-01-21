@@ -1,12 +1,7 @@
-package com.lfkdsk.lspark.selectors
+package io.dashbase.spark.rdds
 
-import java.nio.file.Paths
+import io.dashbase.spark.apis.DashbaseSparkCodec
 
-import org.apache.lucene.index.{DirectoryReader, SegmentInfo, SegmentReader}
-import org.apache.lucene.search.{IndexSearcher, Query}
-import org.apache.lucene.store.FSDirectory
-
-import scala.reflect.ClassTag
 import scala.collection.JavaConverters._
 
 /*
@@ -25,17 +20,25 @@ import scala.collection.JavaConverters._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class DirSegmentSelector(path: String) extends AbstractSegmentSelector[SegmentReader] {
-  override implicit protected def kTag: ClassTag[SegmentReader] = ClassTag(classOf[SegmentReader])
+class SparkDocCodec[Request, Response](request: Request, codec: DashbaseSparkCodec[Request, Response]) extends Serializable {
+  // params null check.
+  paramsNullCheck()
 
-  override def size: Long = ???
-
-  override def iterator: Iterator[SegmentReader] = ???
-
-  override def select(timeRange: TimeRange, query: Query): List[SegmentReader] = {
-    val indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(path)))
-    indexReader.leaves().asScala.map(ctx => ctx.reader().asInstanceOf[SegmentReader]).toList
+  def select(): Set[String] = {
+    codec.timesliceSelector().apply(request).asScala.toSet
   }
 
-  override def close(): Unit = ???
+  def query(segments: Set[String]): Response = {
+    codec.timesliceQuerier().query(request, segments.asJava)
+  }
+
+  def merge(res: Seq[Response]): Response = {
+    codec.responseMerger().merge(res.toSet.asJava)
+  }
+
+  private def paramsNullCheck(): Unit = {
+    if (request == null || codec == null) {
+      throw new IllegalArgumentException(s"params has null values: request: ${request == null}, codec: ${codec == null}")
+    }
+  }
 }
