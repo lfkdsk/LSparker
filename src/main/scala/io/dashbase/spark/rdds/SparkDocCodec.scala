@@ -1,6 +1,7 @@
 package io.dashbase.spark.rdds
 
 import io.dashbase.spark.apis.DashbaseSparkCodec
+import org.apache.spark.rdd.RDD
 
 import scala.collection.JavaConverters._
 

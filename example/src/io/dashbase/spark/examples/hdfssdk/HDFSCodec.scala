@@ -6,7 +6,9 @@ import io.dashbase.spark.apis.{DashbaseSparkCodec, ResponseMerger, TimesliceQuer
 import io.dashbase.spark.examples.models.FileQueryResult
 import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path}
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 
+import scala.collection.JavaConverters._
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -49,7 +51,15 @@ class HDFSCodec(sc: SparkContext) extends DashbaseSparkCodec[String, FileQueryRe
   }
 
   case class HDFSTimeQuerier() extends TimesliceQuerier[String, FileQueryResult] {
-    override def query(request: String, timeslices: util.Set[String]): FileQueryResult = ???
+    override def query(request: String, timeslices: util.Set[String]): FileQueryResult = {
+      timeslices.asScala.map(path => (path, sc.textFile(path)))
+        .filter(fileStatus => fileStatus._2.first().contains(request))
+        .foreach(fileStatus => {
+
+        })
+
+      FileQueryResult()
+    }
   }
 
   override def timesliceSelector(): TimesliceSelector[String] = HDFSTimeSelector()
