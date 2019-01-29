@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import sbt._
+import Keys._
+
 name := "dashbase-spark"
 scalaVersion := "2.11.12"
 version := "0.1"
@@ -33,13 +36,41 @@ scalacOptions ++= Seq(
   "-language:implicitConversions"
 )
 
-libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "2.4.0",
-  "org.apache.lucene" % "lucene-core" % "7.6.0",
-  "org.apache.lucene" % "lucene-queryparser" % "7.6.0",
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "com.holdenkarau" %% "spark-testing-base" % s"2.3.1_0.10.0" % "test" intransitive()
+lazy val settings = Seq(
+  scalacOptions ++= Seq(
+    "-unchecked",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-deprecation",
+    "-encoding",
+    "utf8"
+  )
 )
 
+lazy val dependencies =
+  new {
+    val sparkCore = "org.apache.spark" %% "spark-core" % "2.4.0"
+    val sparkSql = "org.apache.spark" %% "spark-sql" % "2.4.0"
+    val luceneCore = "org.apache.lucene" % "lucene-core" % "7.6.0"
+    val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % "7.6.0"
+    val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+    val sparkTest = "com.holdenkarau" %% "spark-testing-base" % s"2.3.1_0.10.0" % "test" intransitive()
+  }
 
+lazy val commonDependencies = Seq(
+  dependencies.sparkCore,
+  dependencies.sparkSql,
+  dependencies.scalaTest,
+  dependencies.sparkTest
+)
 
+lazy val global = project.in(file("."))
+  .settings(
+    settings,
+    libraryDependencies ++= commonDependencies
+  )
+
+lazy val example = project.settings(settings).dependsOn(global)

@@ -1,4 +1,4 @@
-package io.dashbase.spark
+package io.dashbase.spark.examples.models
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,6 +16,6 @@ package io.dashbase.spark
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class DashbaseSession {
+case class FileQueryResult() {
 
 }
