@@ -1,6 +1,7 @@
 package io.dashbase.spark.rdds
 
 import io.dashbase.spark.apis.DashbaseSparkCodec
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 import scala.collection.JavaConverters._
@@ -21,7 +22,8 @@ import scala.collection.JavaConverters._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class SparkDocCodec[Request, Response](request: Request, codec: DashbaseSparkCodec[Request, Response]) extends Serializable {
+class SparkDocCodec[Request, Response](var request: Request, var codec: DashbaseSparkCodec[Request, Response])
+  extends Serializable {
   // params null check.
   paramsNullCheck()
 
@@ -35,6 +37,10 @@ class SparkDocCodec[Request, Response](request: Request, codec: DashbaseSparkCod
 
   def merge(res: Seq[Response]): Response = {
     codec.responseMerger().merge(res.toSet.asJava)
+  }
+
+  def init(sc: SparkContext): Unit = {
+    codec.timesliceSelector().initial(sc)
   }
 
   private def paramsNullCheck(): Unit = {

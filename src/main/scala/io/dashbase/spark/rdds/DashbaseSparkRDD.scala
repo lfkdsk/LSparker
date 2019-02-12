@@ -32,6 +32,8 @@ class DashbaseSparkRDD[Request, Response: ClassTag](sc: SparkContext,
   checkCodecNil()
   logInfo("codec to split jobs to partitions.")
 
+  codec.init(sparkContext)
+
   override def compute(split: Partition, context: TaskContext): Iterator[Response] = {
     val partition = split.asInstanceOf[DashbaseSparkRDDPartition]
     logInfo(s"query start for partition ${partition.index} in thread ${Thread.currentThread().getId}")
@@ -77,7 +79,7 @@ class DashbaseSparkRDD[Request, Response: ClassTag](sc: SparkContext,
 
   def collectRes(): Response = {
     logInfo("codec to merge collected partitions' response")
-    val results = sparkContext.runJob(this, (iter: Iterator[Response]) => iter.toArray, 0 until minPartitions)
+    val results = sparkContext.runJob(this, (iter: Iterator[Response]) => iter.toArray, partitions.indices)
     codec.merge(Array.concat(results: _*))
   }
 

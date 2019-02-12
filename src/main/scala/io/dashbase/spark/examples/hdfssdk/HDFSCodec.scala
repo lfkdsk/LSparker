@@ -4,10 +4,10 @@ import java.util
 
 import io.dashbase.spark.apis.{DashbaseSparkCodec, ResponseMerger, TimesliceQuerier, TimesliceSelector}
 import io.dashbase.spark.examples.models.FileQueryResult
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, Path}
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import scala.collection.JavaConverters._
+import org.apache.spark.SparkConf
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,24 +24,15 @@ import scala.collection.JavaConverters._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class HDFSCodec(sc: SparkContext) extends DashbaseSparkCodec[String, FileQueryResult] {
+class HDFSCodec extends DashbaseSparkCodec[String, FileQueryResult] with Serializable {
+
+  //  private val fileSystem: FileSystem = FileSystem.get(fileConf)
+  //  private val searchPath: String = sparkConf.get(Constants.FILE_SYSTEM_SEARCH_PATH)
+
+  private val resultPaths: util.HashSet[String] = new util.HashSet[String]
 
   case class HDFSTimeSelector() extends TimesliceSelector[String] {
-    override def apply(queryString: String): util.Set[String] = {
-      val fileSystem = FileSystem.get(sc.hadoopConfiguration)
-      val path = new Path(sc.getConf.get(Constants.FILE_SYSTEM_SEARCH_PATH))
-      val iter = fileSystem.listFiles(path, true)
-      if (iter == null) {
-        throw new IllegalAccessException("cannot access file system")
-      }
-
-      val resultPaths = new util.HashSet[String]
-      for (status: LocatedFileStatus <- iter) {
-        resultPaths.add(status.getPath.toString)
-      }
-
-      resultPaths
-    }
+    override def apply(queryString: String): util.Set[String] = resultPaths
   }
 
   case class HDFSResponseMerger() extends ResponseMerger[FileQueryResult] {
@@ -50,11 +41,11 @@ class HDFSCodec(sc: SparkContext) extends DashbaseSparkCodec[String, FileQueryRe
 
   case class HDFSTimeQuerier() extends TimesliceQuerier[String, FileQueryResult] {
     override def query(request: String, timeslices: util.Set[String]): FileQueryResult = {
-      timeslices.asScala.map(path => (path, sc.textFile(path)))
-        .filter(fileStatus => fileStatus._2.first().contains(request))
-        .foreach(fileStatus => {
-
-        })
+      //      timeslices.asScala.map(path => (path, sc.textFile(path)))
+      //        .filter(fileStatus => fileStatus._2.first().contains(request))
+      //        .foreach(fileStatus => {
+      //
+      //        })
 
       FileQueryResult()
     }
@@ -64,5 +55,26 @@ class HDFSCodec(sc: SparkContext) extends DashbaseSparkCodec[String, FileQueryRe
 
   override def responseMerger(): ResponseMerger[FileQueryResult] = HDFSResponseMerger()
 
-  override def timesliceQuerier(): TimesliceQuerier[String, FileQueryResult] = HDFSTimeSelector()
+  override def timesliceQuerier(): TimesliceQuerier[String, FileQueryResult] = HDFSTimeQuerier()
+
+  def initialTimeSelector(fileConf: Configuration, sparkConf: SparkConf): Unit = {
+    val fileSystem: FileSystem = FileSystem.get(fileConf)
+    val searchPath: String = sparkConf.get(Constants.FILE_SYSTEM_SEARCH_PATH)
+
+    val path = new Path(searchPath)
+    val iter = fileSystem.listFiles(path, true)
+    if (iter == null) {
+      throw new IllegalAccessException("cannot access file system")
+    }
+
+    val resultPaths = new util.HashSet[String]
+
+    while (iter.hasNext) {
+      val status: LocatedFileStatus = iter.next()
+      resultPaths.add(status.getPath.toString)
+      println(status.getPath.toString)
+    }
+
+    this.resultPaths.addAll(resultPaths)
+  }
 }
