@@ -31,7 +31,9 @@ case class HDFSSchemaFetcher() extends SchemaFetcher {
     val fields = df.collect().map(t =>
       StructField(
         t.getString(t.fieldIndex("name")),
-        SchemaUtil.schemaTo(t.getString(t.fieldIndex("type"))))
+        SchemaUtil.schemaTo(t.getString(t.fieldIndex("type"))),
+        nullable = false
+      )
     )
 
     println("end load schema")

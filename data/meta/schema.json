@@ -1,0 +1,5 @@
+{"name": "id", "type": "string"}
+{"name": "name", "type": "string"}
+{"name": "gender", "type": "string"}
+{"name": "salary", "type": "long"}
+{"name": "expenses", "type": "string"}

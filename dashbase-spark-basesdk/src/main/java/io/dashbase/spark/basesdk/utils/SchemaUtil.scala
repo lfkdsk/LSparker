@@ -17,6 +17,7 @@ object SchemaUtil {
       case "long" => LongType
       case "timestamp" => TimestampType
       case "string" => StringType
+      case "integer" => IntegerType
     }
   }
 }

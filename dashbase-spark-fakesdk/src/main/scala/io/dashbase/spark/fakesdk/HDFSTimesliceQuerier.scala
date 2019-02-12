@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class HDFSTimesliceQuerier extends TimesliceQuerier {
+case class HDFSTimesliceQuerier() extends TimesliceQuerier {
   override def query(sqlContext: SQLContext, schema: StructType, query: String, timeslices: util.Set[String]): RDD[Row] = {
     val sc = sqlContext.sparkContext
     val path = sqlContext.getConf(DashbaseConstants.DASHBASE_SEARCH_PATH)
@@ -48,10 +48,16 @@ class HDFSTimesliceQuerier extends TimesliceQuerier {
       val tmp = data.map(words => words.zipWithIndex.map {
         case (value, index) =>
           val colName = schemaFields(index).name
-          SchemaUtil.castTo(if (colName.equalsIgnoreCase("gender")) {
-            if (value.toInt == 1) "Male" else "Female"
-          } else value,
-            schemaFields(index).dataType)
+          SchemaUtil.castTo(
+            if (colName.equalsIgnoreCase("gender")) {
+              if (value.toInt == 1)
+                "Male"
+              else
+                "Female"
+            } else
+              value,
+            schemaFields(index).dataType
+          )
       })
 
       tmp.map(s => Row.fromSeq(s))

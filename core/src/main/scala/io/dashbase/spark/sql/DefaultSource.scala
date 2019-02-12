@@ -4,8 +4,7 @@ import io.dashbase.spark.basesdk.DashbaseSparkCodec
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.sources.{BaseRelation, RelationProvider, SchemaRelationProvider}
 import org.apache.spark.sql.types.StructType
-
-import scala.util.{Success, Try}
+import scala.reflect.runtime.{universe => ru}
 
 class DefaultSource extends RelationProvider with SchemaRelationProvider {
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
@@ -13,7 +12,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider {
   }
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
-    val codec = loadSDKClazz(parameters.get("sdk").toString, sqlContext)
+    val codec = loadSDKClazz(parameters("sdk"), sqlContext)
     val path = parameters.get("path")
 
     path match {
@@ -24,9 +23,22 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider {
 
   def loadSDKClazz(codecClazzPath: String, sqlCon: SQLContext): SparkCodecWrapper = {
     val loader = Thread.currentThread().getContextClassLoader
-    Try(loader.loadClass(codecClazzPath)) match {
-      case Success(dataSource) => new SparkCodecWrapper(dataSource.newInstance().asInstanceOf[DashbaseSparkCodec], sqlCon)
-      case _ => throw new IllegalArgumentException("Codec Path is required for datasource format!!")
+    val clazz = loader.loadClass(codecClazzPath)
+    if (isAssignableFrom(clazz, classOf[DashbaseSparkCodec])) {
+      return new SparkCodecWrapper(clazz.newInstance().asInstanceOf[DashbaseSparkCodec], sqlCon)
     }
+
+    throw new IllegalArgumentException("Codec Path is required for datasource format!!")
+  }
+
+  def isAssignableFrom[T](scalaClass: Class[_], javaClass: Class[T]): Boolean = {
+    val javaClassType: ru.Type = getType(javaClass)
+    val scalaClassType: ru.Type = getType(scalaClass)
+    scalaClassType.<:<(javaClassType)
+  }
+
+  def getType[T](clazz: Class[T]): ru.Type = {
+    val runtimeMirror = ru.runtimeMirror(clazz.getClassLoader)
+    runtimeMirror.classSymbol(clazz).toType
   }
 }

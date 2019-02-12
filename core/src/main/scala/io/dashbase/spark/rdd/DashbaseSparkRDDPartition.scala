@@ -20,10 +20,10 @@ import org.apache.spark.internal.Logging
  * limitations under the License.
  */
 case class DashbaseSparkRDDPartition(rddId: Int, id: Int, segments: Set[String])
-  extends Partition with Logging with Serializable {
+  extends Partition with Serializable {
   override def index: Int = id
 
-  logInfo(s"[partId=$id] Partition is created...")
+  // logInfo(s"[partId=$id] Partition is created...")
 
   def query[Response](f: (String, Set[String]) => Response, query: String, segments: Set[String]): Response = f.apply(query, segments)
 }

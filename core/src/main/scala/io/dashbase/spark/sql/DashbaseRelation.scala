@@ -34,8 +34,7 @@ private[sql] class DashbaseRelation(path: String,
   // PrunedFilteredScan
   def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     println("TableScan: buildScan called...")
-    val sc = sqlContext.sparkContext
-    val schemaFields = schema.fields
+
     val ids = _codec.selectSlices(filters)
     codec.query(_schema.get, null, ids)
   }

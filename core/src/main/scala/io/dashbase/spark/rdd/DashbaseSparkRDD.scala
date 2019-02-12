@@ -38,6 +38,7 @@ class DashbaseSparkRDD(sc: SparkContext,
     val partition = split.asInstanceOf[DashbaseSparkRDDPartition]
     logInfo(s"query start for partition in thread ${Thread.currentThread().getId}")
 //    Iterator(partition.query(codec.query, query, partition.segments))
+    null
   }
 
   override protected def getPartitions: Array[Partition] = {

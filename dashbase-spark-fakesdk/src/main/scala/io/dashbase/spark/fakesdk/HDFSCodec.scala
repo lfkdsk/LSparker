@@ -7,5 +7,5 @@ class HDFSCodec extends DashbaseSparkCodec {
 
   override def timesliceSelector(): TimesliceSelector = HDFSTimesliceSelector()
 
-  override def timesliceQuerier(): TimesliceQuerier = ???
+  override def timesliceQuerier(): TimesliceQuerier = HDFSTimesliceQuerier()
 }

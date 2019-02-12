@@ -1,0 +1,4 @@
+10005, Cindy Heady, 0, 50000, 20000
+10006, Doug Brown, 1, 60000, 24000
+10001, Peter Wang, 1, 20000, 1000
+10007, Carolina Hayden, 0, 70000, 280000
