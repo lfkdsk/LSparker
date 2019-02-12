@@ -1,8 +1,10 @@
 package io.dashbase.spark.sql
 
 import io.dashbase.spark.basesdk.DashbaseSparkCodec
-import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{Row, SQLContext}
 
 import scala.collection.JavaConverters._
 
@@ -40,10 +42,14 @@ class SparkCodecWrapper(codec: DashbaseSparkCodec, sqlCon: SQLContext) {
   }
 
   def selectSlices(): Set[String] = {
-    timeSliceSelector.timeSliceSelector(sqlCon).asScala.toSet
+    selectSlices(Array.empty)
   }
 
-  def query(query: String, segments: Set[String]): Row = {
-    timeSliceQuerier.query(query, segments.asJava)
+  def selectSlices(array: Array[Filter]): Set[String] = {
+    timeSliceSelector.timeSliceSelector(sqlCon, array.toList.asJava).asScala.toSet
+  }
+
+  def query(structType: StructType, query: String, segments: Set[String]): RDD[Row] = {
+    timeSliceQuerier.query(sqlCon, structType, query, segments.asJava)
   }
 }

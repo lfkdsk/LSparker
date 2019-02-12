@@ -2,8 +2,14 @@ package io.dashbase.spark.fakesdk
 
 import java.util
 
-import io.dashbase.spark.basesdk.TimesliceQuerier
+import io.dashbase.spark.basesdk.utils.SchemaUtil
+import io.dashbase.spark.basesdk.{DashbaseConstants, TimesliceQuerier}
+import org.apache.hadoop.fs.Path
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
+
+import scala.collection.JavaConverters._
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,7 +28,35 @@ import org.apache.spark.sql.{Row, SQLContext}
  * limitations under the License.
  */
 class HDFSTimesliceQuerier extends TimesliceQuerier {
-  override def query(sqlContext: SQLContext, query: String, timeslices: util.Set[String]): Row = {
+  override def query(sqlContext: SQLContext, schema: StructType, query: String, timeslices: util.Set[String]): RDD[Row] = {
+    val sc = sqlContext.sparkContext
+    val path = sqlContext.getConf(DashbaseConstants.DASHBASE_SEARCH_PATH)
+    val files = timeslices.asScala.toSet
+    val schemaFields = schema.fields
 
+    if (path == null)
+      throw new IllegalArgumentException("need search path as params in conf with key: [ " + DashbaseConstants.DASHBASE_SEARCH_PATH + " ]")
+
+    val rdds: Set[RDD[String]] = files.map(f => {
+      sc.textFile(new Path(path, f).toString, files.size)
+    })
+
+    val rdd = rdds.reduce((_1, _2) => _1 ++ _2)
+    val rows = rdd.map(fileContent => {
+      val lines = fileContent.split("\n")
+      val data = lines.map(line => line.split(",").map(word => word.trim).toSeq)
+      val tmp = data.map(words => words.zipWithIndex.map {
+        case (value, index) =>
+          val colName = schemaFields(index).name
+          SchemaUtil.castTo(if (colName.equalsIgnoreCase("gender")) {
+            if (value.toInt == 1) "Male" else "Female"
+          } else value,
+            schemaFields(index).dataType)
+      })
+
+      tmp.map(s => Row.fromSeq(s))
+    })
+
+    rows.flatMap(e => e)
   }
 }

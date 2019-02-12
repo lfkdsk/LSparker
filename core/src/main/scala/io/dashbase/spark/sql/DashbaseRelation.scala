@@ -8,7 +8,7 @@ import org.apache.spark.sql.{Row, SQLContext}
 private[sql] class DashbaseRelation(path: String,
                                     parameters: Map[String, String],
                                     codec: SparkCodecWrapper,
-                                    sqlContext: SQLContext,
+                                    val sqlContext: SQLContext,
                                     userSchema: Option[StructType] = None)
   extends BaseRelation with TableScan with PrunedScan with PrunedFilteredScan with Serializable {
 
@@ -36,7 +36,7 @@ private[sql] class DashbaseRelation(path: String,
     println("TableScan: buildScan called...")
     val sc = sqlContext.sparkContext
     val schemaFields = schema.fields
-    val ids = _codec.selectSlices()
-
+    val ids = _codec.selectSlices(filters)
+    codec.query(_schema.get, null, ids)
   }
 }

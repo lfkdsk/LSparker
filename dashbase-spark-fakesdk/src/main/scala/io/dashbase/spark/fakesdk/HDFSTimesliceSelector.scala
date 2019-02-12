@@ -1,11 +1,11 @@
 package io.dashbase.spark.fakesdk
 
 import java.util
-import java.util.logging.Filter
 
 import io.dashbase.spark.basesdk.TimesliceSelector
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.sources.EqualTo
+import org.apache.spark.sql.sources.{EqualTo, Filter}
+
 import scala.collection.JavaConverters._
 
 /*

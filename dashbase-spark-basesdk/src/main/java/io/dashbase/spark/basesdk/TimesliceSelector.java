@@ -16,11 +16,11 @@ package io.dashbase.spark.basesdk;/*
  */
 
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.sources.Filter;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Filter;
 
 public interface TimesliceSelector {
     Set<String> timeSliceSelector(SQLContext sqlContext, String path, List<Filter> filters);
@@ -29,12 +29,12 @@ public interface TimesliceSelector {
         return timeSliceSelector(sqlContext, path, Collections.emptyList());
     }
 
-    default Set<String> timeSliceSelector(SQLContext sqlContext) {
+    default Set<String> timeSliceSelector(SQLContext sqlContext, List<Filter> filters) {
         String searchPath = sqlContext.getConf(DashbaseConstants.DASHBASE_SEARCH_PATH);
         if (searchPath == null) {
             throw new IllegalArgumentException("need search path as params in conf with key: [ " + DashbaseConstants.DASHBASE_SEARCH_PATH + " ]");
         }
 
-        return timeSliceSelector(sqlContext, searchPath);
+        return timeSliceSelector(sqlContext, searchPath, filters);
     }
 }
