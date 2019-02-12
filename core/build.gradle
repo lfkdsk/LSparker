@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'scala'
+}
+
+group 'io.dashbase'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile SCALA_LANG
+    compile SPARK_CORE
+    compile SPARK_SQL
+    compile project(":dashbase-spark-basesdk")
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
